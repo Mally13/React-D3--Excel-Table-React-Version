@@ -4,6 +4,32 @@
         <title>Excel Table React version</title>
         <meta charset="utf-8">
     </head>
+    <style>
+        body{
+            background-color: lightgreen;
+        }
+        table{
+            /* background-color: #ffffff; */
+            width: 90%;
+            margin: auto;
+        }
+        thead{
+            background-color: green;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: medium;
+            height: 56px;
+            
+        }
+        .datarow{
+            background-color: #ffffff;
+            height: 48px;
+            
+        }
+        .datacell{
+            padding: 0 24px;
+        }
+    </style>
     <body>
         <div id="app">
         <!-- my app renders here -->
@@ -41,13 +67,24 @@
                 'English', '1937', '100 million',
                 ],
             ]
+            
+            // Longer Version V1
+
+            /*
             class Excel extends React.Component{
                 render(){
                     const headers=[]
 
-                    for (const title of this.props.headers){
-                        headers.push(<th>{title}</th>);
+                    //before debugging the console warning:
+                    //(Warning: Each child in a list should have a unique "key" prop.Check the render method of `Excel`)
+                    // for (const title of this.props.headers){
+                    //     headers.push(<th>{title}</th>);
+                    // }
 
+                    //solution to the warning
+                    for(const idx in this.props.headers){
+                        const title=this.props.headers[idx];
+                        headers.push(<th key={idx}>{title}</th>)
                     }
                     return(
                         <table>
@@ -58,10 +95,94 @@
                     )
                 }
             }
+            */
+
+            //Shorter version V2
+            
+            /*
+            class Excel extends React.Component{
+                render(){
+                    return(
+                        <table>
+                            <thead>
+                            //before debugging the console warning:
+                            //(Warning: Each child in a list should have a unique "key" prop.Check the render method of `Excel`)
+                    
+                                // <tr>
+                                //    {this.props.headers.map( title=> <th>{title}</th>)}
+                                // </tr>
+
+                            //Solution to the warning
+                                <tr>
+                                   {this.props.headers.map((title,idx)=> <th key={idx}>{title}</th>)}
+                                </tr>
+
+                            </thead>
+                        </table>
+                    )
+                }
+            }
+            */
+           // More verbose map V3
+           
+           /*
+           class Excel extends React.Component{
+                render(){
+                    return(
+                        <table>
+                            <thead>
+                                <tr>
+                                    {this.props.headers.map(
+                                        function(title,idx){
+                                            return <th key={idx}>{title}</th>;
+                                        })
+                                    }
+                                </tr>
+                            </thead>
+                        </table>
+                    )
+                }
+            }
+            */
+
+            //less verbose Map using arrow function V4
+            class Excel extends React.Component{
+                constructor(props){
+                    super();
+                    this.state = {
+                        data : props.initialData,
+                    }
+                }
+                render(){
+                    return(
+                        <table>
+                            <thead>
+                                <tr>
+                                    {this.props.headers.map(
+                                        (title,idx)=>{
+                                            return <th key={idx}>{title}</th>;
+                                        })
+                                    }
+                                </tr>
+                            </thead>
+                            {this.state.data.map((row,idx)=>(
+                                <tr class="datarow" key={idx}>
+                                    {row.map((cell, idx)=>(
+                                        <td class="datacell" key={idx}>{cell}</td>
+                                    ))}
+                                </tr>
+                            ))}
+
+                        </table>
+                    )
+                }
+            }
+
+
 
 
             ReactDOM.render(
-                <Excel headers={headers} />,
+                <Excel headers={headers} initialData={data} />,
                 document.getElementById('app'),
             );
 
