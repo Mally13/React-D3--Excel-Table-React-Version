@@ -7,25 +7,45 @@
   <style>
     body {
       background-color: lightgreen;
+      padding: 0;
+      margin: 0;
+    }
+    #app {
+      padding: 0;
+      margin: 0;
     }
     table {
       /* background-color: #ffffff; */
-      width: 90%;
-      margin: auto;
+      width: 100%;
+      margin: 0;
     }
     thead {
       background-color: green;
       color: #ffffff;
       font-weight: 700;
       font-size: medium;
-      height: 56px;
+      height: 48px;
     }
     .datarow {
       background-color: #ffffff;
-      height: 48px;
+      height: 36px;
+      font-size: small;
     }
     .datacell {
-      padding: 0 24px;
+      padding: 0 16px;
+    }
+    input {
+      outline: none;
+      border: 1px solid rgba(128, 128, 128, 0.274);
+      background-color: transparent;
+      height: 100%;
+    }
+    form {
+      border: 2px solid green;
+      background-color: rgb(151, 248, 199);
+      height: 100%;
+      width: 100%;
+      margin: 0;
     }
   </style>
   <body>
@@ -164,8 +184,11 @@
             data: props.initialData,
             sortBy: null,
             descending: false,
+            edit: null, //{row: index, column: index}
           };
           this.sort = this.sort.bind(this);
+          this.showEditor = this.showEditor.bind(this);
+          this.save = this.save.bind(this);
         }
 
         sort(e) {
@@ -186,11 +209,32 @@
               ? 1
               : -1;
           });
-
           this.setState({
             data,
             sortBy: column,
             descending,
+          });
+        }
+
+        showEditor(e) {
+          this.setState({
+            edit: {
+              row: parseInt(e.target.parentNode.dataset.row, 10),
+              column: e.target.cellIndex,
+            },
+          });
+        }
+
+        save(e) {
+          e.preventDefault();
+          // do the save
+          const input = e.target.firstChild;
+          const data = clone(this.state.data);
+          data[this.state.edit.row][this.state.edit.column] = input.value;
+
+          this.setState({
+            edit: null,
+            data,
           });
         }
 
@@ -207,24 +251,28 @@
                   })}
                 </tr>
               </thead>
-              <tbody>
-                {this.state.data.map((row, idx) => (
-                  <tr className="datarow" key={idx}>
-                    {row.map((cell, idx) =>
-                      isNaN(cell) ? (
-                        <td className="datacell" key={idx}>
+              <tbody onDoubleClick={this.showEditor}>
+                {this.state.data.map((row, rowidx) => (
+                  <tr className="datarow" key={rowidx} data-row={rowidx}>
+                    {row.map((cell, columnidx) => {
+                      const edit = this.state.edit;
+                      if (
+                        edit &&
+                        edit.row === rowidx &&
+                        edit.column === columnidx
+                      ) {
+                        cell = (
+                          <form onSubmit={this.save}>
+                            <input type="text" defaultValue={cell} />
+                          </form>
+                        );
+                      }
+                      return (
+                        <td className="datacell" key={columnidx}>
                           {cell}
                         </td>
-                      ) : (
-                        <td
-                          className="datacell"
-                          style={{ textAlign: "right" }}
-                          key={idx}
-                        >
-                          {cell}
-                        </td>
-                      )
-                    )}
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
