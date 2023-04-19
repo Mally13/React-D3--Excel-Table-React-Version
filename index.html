@@ -162,6 +162,8 @@
           super();
           this.state = {
             data: props.initialData,
+            sortBy: null,
+            descending: false,
           };
           this.sort = this.sort.bind(this);
         }
@@ -169,15 +171,26 @@
         sort(e) {
           const column = e.target.cellIndex;
           const data = clone(this.state.data);
+          const descending =
+            this.state.sortBy === column && !this.state.descending;
 
           data.sort((a, b) => {
             if (a[column] === b[column]) {
               return 0;
             }
-            return a[column] > b[column] ? 1 : -1;
+            return descending
+              ? a[column] < b[column]
+                ? 1
+                : -1
+              : a[column] > b[column]
+              ? 1
+              : -1;
           });
+
           this.setState({
             data,
+            sortBy: column,
+            descending,
           });
         }
 
@@ -187,6 +200,9 @@
               <thead onClick={this.sort}>
                 <tr>
                   {this.props.headers.map((title, idx) => {
+                    if (this.state.sortBy === idx) {
+                      title += this.state.descending ? " \u2191" : " \u2193";
+                    }
                     return <th key={idx}>{title}</th>;
                   })}
                 </tr>
