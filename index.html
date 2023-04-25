@@ -180,7 +180,8 @@
         }
 
         search(e) {
-          const needle = e.target.value.toLoweCase();
+          const needle = e.target.value.toLowerCase();
+          console.log(needle);
           if (!needle) {
             this.setState({ data: this.preSearchData });
             return;
@@ -199,7 +200,7 @@
                 <td className="searchcell" key={idx}>
                   <input
                     type="text"
-                    placeholder={`Search by ${_}`}
+                    placeholder="Search..."
                     className="search"
                     data-idx={idx}
                   />
