@@ -99,6 +99,7 @@
             edit: null, //{row: index, column: index}
             search: false,
           };
+          this.log = [clone(this.state)]; //logs the initial state
           this.preSearchData = null;
 
           this.sort = this.sort.bind(this);
@@ -106,6 +107,17 @@
           this.save = this.save.bind(this);
           this.toggleSearch = this.toggleSearch.bind(this);
           this.search = this.search.bind(this);
+          this.logSetState = this.logSetState.bind(this);
+          this.replay = this.replay.bind(this);
+        }
+
+        componentDidMount() {
+          document.addEventListener("keydown", (e) => {
+            if (e.altKey && e.shiftKey && e.keyCode === 82) {
+              //ALT+SHIFT+R(EPLAY)
+              this.replay();
+            }
+          });
         }
 
         sort(e) {
@@ -126,7 +138,7 @@
               ? 1
               : -1;
           });
-          this.setState({
+          this.logSetState({
             data,
             sortBy: column,
             descending,
@@ -134,7 +146,7 @@
         }
 
         showEditor(e) {
-          this.setState({
+          this.logSetState({
             edit: {
               row: parseInt(e.target.parentNode.dataset.row, 10),
               column: e.target.cellIndex,
@@ -166,14 +178,14 @@
 
         toggleSearch() {
           if (this.state.search) {
-            this.setState({
+            this.logSetState({
               data: this.preSearchData,
               search: false,
             });
             this.preSearchData = null;
           } else {
             this.preSearchData = this.state.data;
-            this.setState({
+            this.logSetState({
               search: true,
             });
           }
@@ -183,14 +195,36 @@
           const needle = e.target.value.toLowerCase();
           console.log(needle);
           if (!needle) {
-            this.setState({ data: this.preSearchData });
+            this.logSetState({ data: this.preSearchData });
             return;
           }
           const idx = e.target.dataset.idx;
           const searchdata = this.preSearchData.filter((row) => {
             return row[idx].toString().toLowerCase().indexOf(needle) > -1;
           });
-          this.setState({ data: searchdata });
+          this.logSetState({ data: searchdata });
+        }
+
+        logSetState(newState) {
+          //remember the old state in a clone
+          this.log.push(clone(newState));
+          //now set the new state
+          this.setState(newState);
+        }
+
+        replay() {
+          if (this.log.length === 1) {
+            console.warn("No state changes to replay yet");
+            return;
+          }
+          let idx = -1;
+          const interval = setInterval(() => {
+            if (++idx === this.log.length - 1) {
+              //the end
+              clearInterval(interval);
+            }
+            this.setState(this.log[idx]);
+          }, 1000);
         }
 
         render() {
