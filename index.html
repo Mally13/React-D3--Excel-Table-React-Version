@@ -101,6 +101,7 @@
           };
           this.log = [clone(this.state)]; //logs the initial state
           this.preSearchData = null;
+          this.replayID = null;
 
           this.sort = this.sort.bind(this);
           this.showEditor = this.showEditor.bind(this);
@@ -109,17 +110,23 @@
           this.search = this.search.bind(this);
           this.logSetState = this.logSetState.bind(this);
           this.replay = this.replay.bind(this);
+          this.keydownHandler = this.keydownHandler.bind(this);
         }
 
         componentDidMount() {
-          document.addEventListener("keydown", (e) => {
-            if (e.altKey && e.shiftKey && e.keyCode === 82) {
-              //ALT+SHIFT+R(EPLAY)
-              this.replay();
-            }
-          });
+          document.addEventListener("keydown", this.keydownHandler);
+        }
+        componentWillUnmount() {
+          document.removeEventListener("keydown", this.keydownHandler);
+          clearInterval(this.replayID);
         }
 
+        keydownHandler(e) {
+          if (e.altKey && e.shiftKey && e.keyCode === 82) {
+            //ALT+SHIFT+R(eplay)
+            this.replay();
+          }
+        }
         sort(e) {
           const column = e.target.cellIndex;
           const data = clone(this.state.data);
@@ -218,7 +225,7 @@
             return;
           }
           let idx = -1;
-          const interval = setInterval(() => {
+          this.replayID = setInterval(() => {
             if (++idx === this.log.length - 1) {
               //the end
               clearInterval(interval);
