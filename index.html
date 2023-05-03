@@ -95,7 +95,7 @@
           const data = clone(props.initialData).map((row, idx) =>
             row.concat(idx)
           );
-          console.log(data);
+          // console.log(data);
           this.state = {
             data,
             sortBy: null,
@@ -121,6 +121,16 @@
 
         componentDidMount() {
           document.addEventListener("keydown", this.keydownHandler);
+          //fetch data from an API
+          fetch("https://www.phpied.com/files/reactbook/table-data.json")
+            .then((response) => response.json())
+            .then((initialData) => {
+              const data = clone(initialData).map((row, idx) => {
+                row.push(idx);
+                return row;
+              });
+              this.setState({ data });
+            });
         }
         componentWillUnmount() {
           document.removeEventListener("keydown", this.keydownHandler);
@@ -307,48 +317,58 @@
                     })}
                   </tr>
                 </thead>
-                <tbody onDoubleClick={this.showEditor}>
-                  {searchRow}
-                  {this.state.data.map((row, rowidx) => {
-                    //last piece of data in a row is the id
-                    const recordId = row[row.length - 1];
-                    return (
-                      <tr
-                        className="datarow"
-                        key={recordId}
-                        data-row={recordId}
-                      >
-                        {row.map((cell, columnidx) => {
-                          if (columnidx === this.props.headers.length) {
-                            //do not show the record id in the table UI
-                            return;
-                          }
-                          const edit = this.state.edit;
-                          if (
-                            edit &&
-                            edit.row === recordId &&
-                            edit.column === columnidx
-                          ) {
-                            cell = (
-                              <form onSubmit={this.save}>
-                                <input
-                                  type="text"
-                                  className="edit-cell"
-                                  defaultValue={cell}
-                                />
-                              </form>
+                {this.state.data.length === 0 ? (
+                  <tbody>
+                    <tr>
+                      <td colSpan={this.props.headers.length}>
+                        Loading data ...
+                      </td>
+                    </tr>
+                  </tbody>
+                ) : (
+                  <tbody onDoubleClick={this.showEditor}>
+                    {searchRow}
+                    {this.state.data.map((row, rowidx) => {
+                      //last piece of data in a row is the id
+                      const recordId = row[row.length - 1];
+                      return (
+                        <tr
+                          className="datarow"
+                          key={recordId}
+                          data-row={recordId}
+                        >
+                          {row.map((cell, columnidx) => {
+                            if (columnidx === this.props.headers.length) {
+                              //do not show the record id in the table UI
+                              return;
+                            }
+                            const edit = this.state.edit;
+                            if (
+                              edit &&
+                              edit.row === recordId &&
+                              edit.column === columnidx
+                            ) {
+                              cell = (
+                                <form onSubmit={this.save}>
+                                  <input
+                                    type="text"
+                                    className="edit-cell"
+                                    defaultValue={cell}
+                                  />
+                                </form>
+                              );
+                            }
+                            return (
+                              <td className="datacell" key={columnidx}>
+                                {cell}
+                              </td>
                             );
-                          }
-                          return (
-                            <td className="datacell" key={columnidx}>
-                              {cell}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                )}
               </table>
             </div>
           );
@@ -404,7 +424,7 @@
       }
 
       ReactDOM.render(
-        <Excel headers={headers} initialData={data} />,
+        <Excel headers={headers} initialData={[]} />,
         document.getElementById("app")
       );
     </script>
